@@ -4,7 +4,10 @@ import com.example.transaction.service.bankingService.BankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 
@@ -26,8 +29,14 @@ public class BankingController {
         }
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<String> testEndpoint() {
-        return ResponseEntity.ok("Controller is working!");
+    @PostMapping("/reverse")
+    public ResponseEntity<String> reverseTransaction(@RequestParam int customerId,
+                                                     @RequestParam BigDecimal transactionAmount) {
+        try {
+            bankingService.rollbackTransaction(customerId, transactionAmount);
+            return ResponseEntity.ok("Transaction rolled back successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

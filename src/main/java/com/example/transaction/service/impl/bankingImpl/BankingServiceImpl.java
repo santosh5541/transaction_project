@@ -58,4 +58,23 @@ public class BankingServiceImpl implements BankingService {
         transactionCount.setTransactionDate(LocalDate.now());
         customerTransactionCountRepository.save(transactionCount);
     }
+
+    @Override
+    public void rollbackTransaction(int customerId, BigDecimal transactionAmount) {
+        Customer customer = customerRepository.findById(customerId).orElseThrow(() -> new RuntimeException("Could not find customer"));
+        customer.setBalance(customer.getBalance().add(transactionAmount));
+        customerRepository.save(customer);
+
+        customer.setBalance(customer.getBalance().add(transactionAmount));
+        customerRepository.save(customer);
+        
+        CustomerTransactionCount transaction = customerTransactionCountRepository
+                .findByCustomerIdAndTransactionAmountAndTransactionDate(customerId, transactionAmount, LocalDate.now())
+                .orElseThrow(() -> new RuntimeException("Transaction record not found"));
+        customerTransactionCountRepository.delete(transaction);
+    }
+
+//    private BigDecimal getMerchantDailyLimit(int merchantId) {
+//        return BigDecimal.valueOf(1000);
+//    }
 }
